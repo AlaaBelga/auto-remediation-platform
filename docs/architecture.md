@@ -2,7 +2,7 @@
 
 This document outlines the architectural decisions, data flows, and technical specifications of the Auto-Remediation Platform. The system is designed to be a highly resilient, event-driven cyber-physical ecosystem that bridges Machine Learning with DevOps automation.
 
-## 1. High-Level Architecture
+## 1. Architecture
 
 The platform is built on a loosely coupled microservices architecture, separated into two primary engines:
 
