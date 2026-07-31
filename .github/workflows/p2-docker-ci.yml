@@ -1,0 +1,54 @@
+name: P2 Docker CI
+
+on:
+  push:
+    paths:
+      - "P2/**"
+      - "requirements.txt"
+      - ".github/workflows/p2-docker-ci.yml"
+  pull_request:
+    paths:
+      - "P2/**"
+      - "requirements.txt"
+      - ".github/workflows/p2-docker-ci.yml"
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build standard image
+        run: docker build -t p2-consumer:standard -f P2/Dockerfile .
+
+      - name: Build distroless image
+        run: docker build -t p2-consumer:distroless -f P2/Dockerfile.distroless .
+
+      - name: Run standard container
+        run: |
+          docker run -d --rm --name p2-standard -p 8001:8000 p2-consumer:standard
+          for i in $(seq 1 30); do
+            if docker run --rm --network host curlimages/curl:8.7.1 -fsS http://127.0.0.1:8001/health >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          docker logs p2-standard
+          exit 1
+
+      - name: Run distroless container
+        run: |
+          docker run -d --rm --name p2-distroless -p 8002:8000 p2-consumer:distroless
+          for i in $(seq 1 30); do
+            if docker run --rm --network host curlimages/curl:8.7.1 -fsS http://127.0.0.1:8002/health >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          docker logs p2-distroless
+          exit 1

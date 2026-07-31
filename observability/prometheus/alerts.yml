@@ -1,0 +1,41 @@
+groups:
+  - name: self-healing-risk
+    rules:
+      - alert: FleetRiskScoreCritical
+        expr: max(p2_latest_risk_score) > 0.70
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Score de risque critique"
+          description: "Le dernier score de risque P2 est superieur a 0.70 depuis 5 minutes."
+
+      - alert: P2EventsRejected
+        expr: increase(p2_events_rejected_total[5m]) > 0
+        for: 0m
+        labels:
+          severity: warning
+          domain: validation
+        annotations:
+          summary: "Evenement P2 rejete"
+          description: "Au moins un evenement P1 -> P2 a ete rejete par la validation de schema dans les 5 dernieres minutes."
+
+      - alert: P2SelfHealingTriggered
+        expr: increase(p2_self_healing_triggered_total[5m]) > 0
+        for: 0m
+        labels:
+          severity: info
+          domain: remediation
+        annotations:
+          summary: "Auto-remediation declenchee"
+          description: "P2 a declenche au moins un playbook d'auto-remediation dans les 5 dernieres minutes."
+
+      - alert: P2IncidentOpened
+        expr: increase(p2_incidents_opened_total[5m]) > 0
+        for: 0m
+        labels:
+          severity: warning
+          domain: incident
+        annotations:
+          summary: "Incident P2 ouvert"
+          description: "P2 a ouvert au moins un incident simule dans les 5 dernieres minutes. Verifier le ticket SQLite et la notification webhook."

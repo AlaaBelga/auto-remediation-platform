@@ -1,0 +1,116 @@
+# 🛠️ Predictive Maintenance & Auto-Remediation Platform
+
+![Global Dashboard](assets/08_dashboard_global.png)
+
+## 📖 Overview
+
+This project is not just a machine learning model—it is a **complete, end-to-end event-driven platform**. It is designed to demonstrate how an industrial system can detect potential failures and, more importantly, **automatically remediate them** before they cause critical downtime. 
+
+The architecture is strictly decoupled into two distinct pillars:
+- **Pillar 2 (The Core Focus):** The event-driven auto-remediation orchestrator. It listens to risk events, executes predefined playbooks, coordinates simulated actuators, and sends alerts (e.g., via Slack webhooks). 
+- **Pillar 1:** An independent predictive engine that analyzes NASA CMAPSS sensor data and exposes predictions via a REST API.
+
+By completely decoupling these systems, the ML engine (Pillar 1) can be entirely swapped or upgraded without ever touching the complex, event-driven remediation logic of Pillar 2.
+
+---
+
+## 🏗️ Architecture: Two Independent Pillars
+
+![Docker Services](assets/02_docker_services.png)
+
+The system relies on an event-driven architecture powered by **Kafka**. 
+
+1. **CMAPSS Simulator** reads raw sensor data and sends it to Pillar 1.
+2. **Pillar 1** exposes a `/predict` endpoint that evaluates the risk score, RUL (Remaining Useful Life), and anomaly status.
+3. A **Passerelle (Bridge)** links the two pillars by polling Pillar 1 and publishing high-risk events to Kafka.
+4. **Pillar 2** consumes these events from Kafka and executes the remediation playbooks.
+
+---
+
+## 🚀 Pillar 2: The Auto-Remediation Engine
+
+While training a predictive model is standard practice, **Pillar 2** represents the true engineering complexity of this platform. It transforms passive predictions into **active, automated responses**.
+
+![Bridge Architecture](assets/bridge_p1_p2.png)
+
+### Key Features of Pillar 2
+- **Event-Driven Broker**: Utilizes **Kafka** to decouple event generation from playbook execution.
+- **Automated Playbook Execution**: The P2 worker is the sole authority for executing playbooks, preventing duplicate commands during an ongoing incident.
+- **Simulated Actuator Commands**: Automatically triggers commands like `REDUCE_RPM_BY_20` based on the incident severity.
+- **Alerting & Ticketing**: Automatically sends notifications to a mock Slack webhook and logs incidents in a local SQLite tracking database.
+- **Kubernetes Ready**: Designed to be deployed on a Kubernetes cluster with provided manifests (`k8s/platform.yaml`).
+
+### Observability
+The platform integrates **Prometheus** and **Grafana** to monitor system health and prediction metrics in real-time.
+
+![Grafana Dashboard](assets/grafana_dashboard_active.png)
+
+---
+
+## 🧠 Pillar 1: Independent Predictive Engine
+
+Pillar 1 is a standalone Machine Learning application. It was trained on the NASA CMAPSS dataset using a RandomForest approach with 5-fold `GroupKFold` validation to predict engine degradation.
+
+![Critical Failure Detected](assets/11_dashboard_critical_1.png)
+
+### Independence & Extensibility
+Pillar 1 exposes a clean, documented **FastAPI** interface. It has no knowledge of Kafka, actuators, or playbooks. Because it is completely decoupled:
+- The NASA CMAPSS model could be replaced by a visual inspection model.
+- The entire ML stack could be rewritten in another language.
+
+As long as the new engine respects the simple `/predict` contract, **Pillar 2 remains unaffected**.
+
+![Swagger API](assets/03_api_swagger.png)
+
+---
+
+## ⚡ Quick Start (Docker Compose)
+
+The easiest way to launch the complete platform locally is via Docker Compose:
+
+```bash
+docker compose up --build
+```
+
+**Available Services:**
+- **P1 Swagger (API)**: [http://localhost:8000/docs](http://localhost:8000/docs)
+- **P2 Console**: [http://localhost:8001/ui](http://localhost:8001/ui)
+- **Streamlit Dashboard**: [http://localhost:8501](http://localhost:8501)
+- **Mock Slack Webhook**: [http://localhost:8010/notifications](http://localhost:8010/notifications)
+- **Grafana**: [http://localhost:3000](http://localhost:3000) *(admin/admin)*
+- **Prometheus**: [http://localhost:9090](http://localhost:9090)
+
+---
+
+## 🎬 End-to-End Demonstration
+
+To see the auto-remediation in action, wait for the stack to start, then trigger a critical event simulation:
+
+```bash
+python3 -m P2.p1_to_p2_bridge \
+  --payload-file Projet_encadrer/critical_payload.json \
+  --machine-id TURBINE_042 \
+  --p1-url http://127.0.0.1:8000/predict \
+  --p2-url http://127.0.0.1:8001/events \
+  --p1-api-key demo-platform-key \
+  --p2-api-key demo-platform-key
+```
+
+**What happens next?**
+1. The event is validated and sent to Kafka.
+2. The P2 worker picks it up and executes the remediation playbook.
+3. You can see the incident notification on the mock Slack service at `http://localhost:8010/notifications`.
+
+*(See [DEMO_RUNBOOK.md](DEMO_RUNBOOK.md) for detailed demonstration scripts.)*
+
+---
+
+## 🛡️ CI/CD & Engineering Rigor
+
+This project is built with production standards in mind. 
+
+- **GitHub Actions**: Fully automated CI/CD pipelines (`.github/workflows/platform-ci.yml`, `p2-docker-ci.yml`).
+- **Kubernetes Validation**: Automated `dry-run` testing against real K8s APIs.
+- **Comprehensive Testing**: Validated by an extensive `pytest` suite ensuring the bridge, API, ticketing database, and ML models all function perfectly.
+
+![Tests Passed](assets/tests_passed.png)

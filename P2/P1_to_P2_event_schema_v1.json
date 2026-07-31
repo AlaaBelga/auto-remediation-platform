@@ -1,0 +1,133 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.org/schemas/p1-to-p2-event.schema.json",
+  "title": "P1 -> P2 event schema (v1)",
+  "description": "Schéma JSON strict pour l'événement 'machine_risk_assessed' envoyé du Pilier 1 vers le Pilier 2.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "event_id",
+    "event_type",
+    "timestamp",
+    "source",
+    "correlation_id",
+    "machine_id",
+    "prediction",
+    "risk_score",
+    "decision",
+    "schema_version"
+  ],
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "pattern": "^evt-[0-9]{8}-[0-9A-Za-z-]+$",
+      "description": "Identifiant unique de l'événement (ex: evt-20260518-0001)."
+    },
+    "event_type": {
+      "type": "string",
+      "enum": ["machine_risk_assessed"],
+      "description": "Type d'événement."
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Horodatage ISO8601 UTC de la prédiction."
+    },
+    "source": {
+      "type": "string",
+      "enum": ["pilier_1"],
+      "description": "Origine de l'événement."
+    },
+    "correlation_id": {
+      "type": "string",
+      "description": "Identifiant de corrélation pour suivre la requête de bout en bout."
+    },
+    "machine_id": {
+      "type": "string",
+      "description": "Identifiant métier de l'entité surveillée (ex: unit_42)."
+    },
+    "prediction": {
+      "type": "integer",
+      "enum": [0, 1],
+      "description": "Sortie binaire du modèle: 0 = OK, 1 = risque de panne."
+    },
+    "status": {
+      "type": "string",
+      "description": "Libellé métier (ex: RISQUE_DE_PANNE, WARNING)."
+    },
+    "risk_score": {
+      "type": "number",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "description": "Score de risque normalisé entre 0 et 1."
+    },
+    "threshold": {
+      "type": "number",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "description": "Seuil utilisé côté Pilier 1 pour considérer un risque significatif (optionnel)."
+    },
+    "decision": {
+      "type": "string",
+      "enum": ["observe", "escalate", "trigger_self_healing", "require_human_review"],
+      "description": "Décision recommandée par le moteur de décision du Pilier 1."
+    },
+    "model_version": {
+      "type": "string",
+      "description": "Version du modèle ayant produit la prédiction."
+    },
+    "api_latency_ms": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Latence observée côté API en millisecondes (optionnel)."
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "description": "Métrique interne de confiance du modèle (optionnel)."
+    },
+    "severity": {
+      "type": "string",
+      "enum": ["low", "medium", "high"],
+      "description": "Estimée de sévérité pour priorisation (optionnel)."
+    },
+    "recommended_action": {
+      "type": "string",
+      "enum": ["restart_service", "reduce_load", "recalibrate_sensor", "schedule_maintenance", "scale_up", "degrade_mode", "notify_maintainer", "no_action"],
+      "description": "Action recommandée côté Pilier 2 (optionnel)."
+    },
+    "estimated_time_to_failure_hours": {
+      "type": "number",
+      "minimum": 0.0,
+      "description": "Temps estime avant defaillance, transmis par le modele RUL du Pilier 1."
+    },
+    "anomaly_detected": {
+      "type": "boolean",
+      "description": "Indique si le modele d'anomalie du Pilier 1 a detecte une anomalie."
+    },
+    "anomaly_score": {
+      "type": "number",
+      "description": "Score brut du detecteur d'anomalie du Pilier 1."
+    },
+    "top_contributing_sensors": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Capteurs qui contribuent le plus a la prediction ML."
+    },
+    "service_health_ok": {
+      "type": "boolean",
+      "description": "Etat de sante du service ou controleur surveille, si disponible."
+    },
+    "reason": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Liste des motifs ayant conduit à la décision (ex: risk_score_above_threshold)."
+    },
+    "schema_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+$",
+      "description": "Version du schéma (ex: 1.0)."
+    }
+  }
+}

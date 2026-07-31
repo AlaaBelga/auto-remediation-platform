@@ -1,0 +1,168 @@
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.1
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.1
+    depends_on:
+      - zookeeper
+    ports:
+      - "29092:29092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,PLAINTEXT_HOST://0.0.0.0:29092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-topics --bootstrap-server localhost:9092 --list >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+
+  p1-api:
+    build:
+      context: .
+      dockerfile: Projet_encadrer/Dockerfile.api
+    environment:
+      MODEL_VERSION: rf-1.2.0
+      RISK_WARNING_THRESHOLD: 0.60
+      RISK_CRITICAL_THRESHOLD: 0.80
+      P1_API_KEY: demo-platform-key
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health').read()"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+
+  dashboard:
+    build:
+      context: .
+      dockerfile: Projet_encadrer/Dockerfile.dashboard
+    depends_on:
+      p1-api:
+        condition: service_healthy
+    environment:
+      PREDICTION_API_URL: http://p1-api:8000/predict
+      PREDICTION_API_KEY: demo-platform-key
+    ports:
+      - "8501:8501"
+
+  p2-api:
+    build:
+      context: .
+      dockerfile: P2/Dockerfile
+    depends_on:
+      kafka:
+        condition: service_healthy
+      slack-mock:
+        condition: service_healthy
+    environment:
+      KAFKA_ENABLED: "true"
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      KAFKA_INPUT_TOPIC: p1.machine.risk.assessed
+      KAFKA_OUTPUT_TOPIC: p2.self.healing.results
+      KAFKA_CLIENT_ID: p2-self-healing-api
+      P2_DATA_DIR: /data
+      P2_API_KEY: demo-platform-key
+      P2_WEBHOOK_URL: http://slack-mock:8003/webhook/slack
+    ports:
+      - "8001:8000"
+    volumes:
+      - p2-data:/data
+
+  slack-mock:
+    build:
+      context: .
+      dockerfile: P2/Dockerfile
+    environment:
+      P2_DATA_DIR: /data
+    command: ["uvicorn", "P2.mock_webhook:app", "--host", "0.0.0.0", "--port", "8003"]
+    ports:
+      - "8010:8003"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8003/health').read()"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 5s
+    volumes:
+      - p2-data:/data
+
+  p2-worker:
+    build:
+      context: .
+      dockerfile: P2/Dockerfile
+    depends_on:
+      kafka:
+        condition: service_healthy
+      slack-mock:
+        condition: service_healthy
+    environment:
+      KAFKA_ENABLED: "true"
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      KAFKA_INPUT_TOPIC: p1.machine.risk.assessed
+      KAFKA_OUTPUT_TOPIC: p2.self.healing.results
+      KAFKA_CLIENT_ID: p2-self-healing-worker
+      P2_DATA_DIR: /data
+      P2_WORKER_METRICS_PORT: 8002
+      P2_WEBHOOK_URL: http://slack-mock:8003/webhook/slack
+    command: ["python", "-m", "P2.broker_worker"]
+    expose:
+      - "8002"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8002/metrics').read()"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 10s
+    volumes:
+      - p2-data:/data
+
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    depends_on:
+      - p1-api
+      - p2-api
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./observability/prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.enable-lifecycle"
+
+  grafana:
+    image: grafana/grafana:11.2.0
+    depends_on:
+      - prometheus
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+
+volumes:
+  prometheus-data:
+  grafana-data:
+  p2-data:

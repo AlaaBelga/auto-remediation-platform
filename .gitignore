@@ -1,0 +1,17 @@
+.DS_Store
+.env
+.venv/
+.venv_broken/
+**/.venv/
+**/__pycache__/
+**/.pytest_cache/
+*.py[cod]
+*.log
+*.db
+*.db-shm
+*.db-wal
+P2/incidents.jsonl
+P2/actuator_commands.log
+P2/consumer.log
+P2/playbook_actions.log
+Projet_encadrer/.matplotlib/

@@ -1,0 +1,297 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: self-healing
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: platform-config
+  namespace: self-healing
+data:
+  MODEL_VERSION: rf-1.2.0
+  RISK_WARNING_THRESHOLD: "0.60"
+  RISK_CRITICAL_THRESHOLD: "0.80"
+  PREDICTION_API_URL: http://p1-api:8000/predict
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: platform-api-key
+  namespace: self-healing
+type: Opaque
+stringData:
+  API_KEY: demo-platform-key
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: p1-api
+  namespace: self-healing
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: p1-api
+  template:
+    metadata:
+      labels:
+        app: p1-api
+    spec:
+      containers:
+        - name: p1-api
+          image: self-healing/p1-api:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: platform-config
+          env:
+            - name: P1_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: platform-api-key
+                  key: API_KEY
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 750m
+              memory: 768Mi
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 15
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: p1-api
+  namespace: self-healing
+spec:
+  selector:
+    app: p1-api
+  ports:
+    - port: 8000
+      targetPort: 8000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dashboard
+  namespace: self-healing
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dashboard
+  template:
+    metadata:
+      labels:
+        app: dashboard
+    spec:
+      containers:
+        - name: dashboard
+          image: self-healing/dashboard:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8501
+          env:
+            - name: PREDICTION_API_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: platform-config
+                  key: PREDICTION_API_URL
+            - name: PREDICTION_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: platform-api-key
+                  key: API_KEY
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          readinessProbe:
+            httpGet:
+              path: /_stcore/health
+              port: 8501
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /_stcore/health
+              port: 8501
+            initialDelaySeconds: 20
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dashboard
+  namespace: self-healing
+spec:
+  selector:
+    app: dashboard
+  ports:
+    - port: 8501
+      targetPort: 8501
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: p2-api
+  namespace: self-healing
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: p2-api
+  template:
+    metadata:
+      labels:
+        app: p2-api
+    spec:
+      containers:
+        - name: p2-api
+          image: self-healing/p2-api:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+          env:
+            - name: KAFKA_ENABLED
+              value: "false"
+            - name: P2_DATA_DIR
+              value: /tmp/p2
+            - name: P2_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: platform-api-key
+                  key: API_KEY
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 15
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: p2-api
+  namespace: self-healing
+spec:
+  selector:
+    app: p2-api
+  ports:
+    - port: 8000
+      targetPort: 8000
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: p1-api
+  namespace: self-healing
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: p1-api
+  minReplicas: 2
+  maxReplicas: 10
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 60
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: p1-api
+  namespace: self-healing
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: p1-api
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: p2-api
+  namespace: self-healing
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: p2-api
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: self-healing
+  namespace: self-healing
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: p1.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: p1-api
+                port:
+                  number: 8000
+    - host: p2.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: p2-api
+                port:
+                  number: 8000
+    - host: dashboard.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: dashboard
+                port:
+                  number: 8501

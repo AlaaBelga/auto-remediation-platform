@@ -1,0 +1,38 @@
+### Distroless multi-stage Dockerfile for P2 (smaller runtime image)
+### Stage: builder - install dependencies and CA certs
+FROM python:3.13-slim AS builder
+
+WORKDIR /install
+
+# Install CA certificates so we can copy them into distroless image
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates curl \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt /install/requirements.txt
+RUN pip install --no-cache-dir --prefix=/install -r /install/requirements.txt
+
+### Stage: runtime - distroless nonroot
+FROM gcr.io/distroless/python3:nonroot
+
+WORKDIR /app
+
+# Copy installed Python packages and binaries
+COPY --from=builder --chown=65532:65532 /install /usr/local
+
+# Copy CA certificates from builder into runtime image
+COPY --from=builder --chown=65532:65532 /etc/ssl/certs /etc/ssl/certs
+
+# Copy application
+COPY --chown=65532:65532 P2 /app/P2
+
+ENV PYTHONPATH=/app:/usr/local/lib/python3.13/site-packages
+
+EXPOSE 8000
+
+# Use the distroless python3 entrypoint and pass uvicorn as module args
+CMD ["-m", "uvicorn", "P2.api:app", "--host", "0.0.0.0", "--port", "8000"]
+
+# Distroless healthcheck via Python stdlib only
+HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
+    CMD ["python3", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health').read()"]

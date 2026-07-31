@@ -1,0 +1,29 @@
+{
+  "model_version": "rf-1.2.0",
+  "scikit_learn_version": "1.7.2",
+  "pandas_version": "2.2.3",
+  "numpy_version": "2.2.6",
+  "joblib_version": "1.5.1",
+  "classification_algorithm": "RandomForestClassifier",
+  "rul_algorithm": "RandomForestRegressor",
+  "anomaly_algorithm": "IsolationForest",
+  "failure_threshold_rul_cycles": 30,
+  "split_strategy": "grouped by unit_number (70/15/15)",
+  "group_kfold_f1_mean": 0.8541744274661017,
+  "group_kfold_f1_std": 0.013987424204058107,
+  "validation_f1": 0.8553191489361702,
+  "test_f1": 0.8623435722411832,
+  "validation_rul": {
+    "mae": 30.821998979609635,
+    "rmse": 42.6099789944044,
+    "r2": 0.5983988544810649
+  },
+  "test_rul": {
+    "mae": 27.226938097707258,
+    "rmse": 36.3911638382463,
+    "r2": 0.6626675891103366
+  },
+  "anomaly_training_rows": 12337,
+  "anomaly_contamination": 0.03,
+  "feature_count": 24
+}

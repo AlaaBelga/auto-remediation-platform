@@ -1,0 +1,12 @@
+{
+  "event_id": "bad-id",
+  "event_type": "machine_risk_assessed",
+  "timestamp": "not-a-date",
+  "source": "unknown",
+  "correlation_id": "",
+  "machine_id": "unit_99",
+  "prediction": 2,
+  "risk_score": 1.5,
+  "decision": "unknown_decision",
+  "schema_version": "one"
+}
