@@ -5,15 +5,15 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-COPY P1/requirements-api.txt .
+COPY predictive_engine/requirements-api.txt .
 RUN pip install --no-cache-dir -r requirements-api.txt
 
-COPY P1/api.py .
-COPY P1/model.joblib .
-COPY P1/rul_model.joblib .
-COPY P1/anomaly_model.joblib .
-COPY P1/model_features.joblib .
-COPY P1/feature_profile.joblib .
+COPY predictive_engine/api.py .
+COPY predictive_engine/model.joblib .
+COPY predictive_engine/rul_model.joblib .
+COPY predictive_engine/anomaly_model.joblib .
+COPY predictive_engine/model_features.joblib .
+COPY predictive_engine/feature_profile.joblib .
 
 RUN useradd --create-home appuser \
     && chown -R appuser:appuser /app

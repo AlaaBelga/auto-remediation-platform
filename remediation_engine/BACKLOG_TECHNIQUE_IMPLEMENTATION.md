@@ -75,12 +75,12 @@ Livrable attendu:
 - règles de décision;
 - premier playbook de redémarrage.
 
-### P1
+### Predictive Engine
 - observabilité complète;
 - journalisation normalisée;
 - simulation d'incident.
 
-### P2
+### Remediation Engine
 - tableau de bord d'exploitation;
 - amélioration des seuils;
 - extension à d'autres cas d'usage.

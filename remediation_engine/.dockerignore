@@ -4,6 +4,6 @@ __pycache__
 .pytest_cache
 .venv
 venv
-P2/tests
-P2/examples
+remediation_engine/tests
+remediation_engine/examples
 *.log

@@ -16,10 +16,10 @@ Attendre que les services soient `healthy` quand un healthcheck existe.
 
 URLs a ouvrir :
 
-- P1 Swagger : http://localhost:8000/docs
-- P2 console : http://localhost:8001/ui
+- Predictive Engine Swagger : http://localhost:8000/docs
+- Remediation Engine console : http://localhost:8001/ui
 - Tableau de bord Streamlit : http://localhost:8501
-- Tickets P2 : http://localhost:8001/tickets
+- Tickets Remediation Engine : http://localhost:8001/tickets
 - Mock Slack : http://localhost:8010/notifications
 - Prometheus : http://localhost:9090
 - Grafana : http://localhost:3000 (`admin` / `admin`)
@@ -33,7 +33,7 @@ demo-platform-key
 ## 2. Verification rapide en terminal
 
 ```bash
-pytest P2/tests P1/tests -q
+pytest remediation_engine/tests predictive_engine/tests -q
 docker compose config --quiet
 ```
 
@@ -59,25 +59,25 @@ bash scripts/demo_smoke_test.sh
 
 Ce script :
 
-- verifie P1, P2, Mock Slack et Prometheus
-- appelle P1 `/predict` avec `critical_payload.json`
-- transforme la prediction en evenement P2
-- poste l'evenement vers P2 `/events`
+- verifie Predictive Engine, Remediation Engine, Mock Slack et Prometheus
+- appelle Predictive Engine `/predict` avec `critical_payload.json`
+- transforme la prediction en evenement Remediation Engine
+- poste l'evenement vers Remediation Engine `/events`
 - laisse le worker Kafka traiter le message
-- affiche les tickets, notifications et metriques P2
+- affiche les tickets, notifications et metriques Remediation Engine
 
 Captures recommandees :
 
-- terminal avec la reponse du bridge P1 -> P2
+- terminal avec la reponse du bridge Predictive Engine -> Remediation Engine
 - terminal avec `Tickets crees`
 - terminal avec `Notifications mock Slack`
-- terminal avec les metriques P2
+- terminal avec les metriques Remediation Engine
 
 ## 3 bis. Captures centrees sur le Pilier 2
 
-Pour une video centree sur P2, le plus propre est de demarrer la plateforme
-complete et de laisser P1 produire un cas critique, mais de ne capturer que les
-preuves P2.
+Pour une video centree sur Remediation Engine, le plus propre est de demarrer la plateforme
+complete et de laisser Predictive Engine produire un cas critique, mais de ne capturer que les
+preuves remediation_engine.
 
 Demarrer la stack :
 
@@ -92,24 +92,24 @@ Lancer ensuite le smoke test end-to-end :
 bash scripts/demo_smoke_test.sh
 ```
 
-Ce chemin donne de meilleures preuves P2, car l'evenement vient vraiment de P1
-via la passerelle P1 -> P2, puis passe par Kafka, le worker P2, le ticketing, le
+Ce chemin donne de meilleures preuves Remediation Engine, car l'evenement vient vraiment de Predictive Engine
+via la passerelle Predictive Engine -> Remediation Engine, puis passe par Kafka, le worker Remediation Engine, le ticketing, le
 mock Slack et les metriques.
 
-Captures recommandees, sans montrer les ecrans P1 :
+Captures recommandees, sans montrer les ecrans Predictive Engine :
 
-- terminal avec la reponse du bridge P1 -> P2
+- terminal avec la reponse du bridge Predictive Engine -> Remediation Engine
 - terminal avec `Tickets crees`
 - terminal avec `Notifications mock Slack`
-- terminal avec les metriques P2
+- terminal avec les metriques Remediation Engine
 - navigateur `http://localhost:8001/ui`
 - navigateur `http://localhost:8001/tickets`
 - navigateur `http://localhost:8010/notifications`
 - optionnel : `http://localhost:9090/targets`, `http://localhost:9090/alerts`
-- optionnel : dashboard Grafana P2 dans `http://localhost:3000`
+- optionnel : dashboard Grafana Remediation Engine dans `http://localhost:3000`
 
-Si besoin d'un mode plus rapide qui evite P1, demarrer uniquement la chaine
-utile a P2 :
+Si besoin d'un mode plus rapide qui evite Predictive Engine, demarrer uniquement la chaine
+utile a Remediation Engine :
 
 ```bash
 docker compose up --build -d kafka slack-mock p2-api p2-worker
@@ -123,10 +123,10 @@ docker compose up --build -d prometheus grafana
 ```
 
 Note : dans le fichier Compose actuel, Prometheus depend aussi de `p1-api`.
-Il peut donc demarrer P1 automatiquement, mais les captures peuvent rester
-strictement centrees sur les metriques P2.
+Il peut donc demarrer Predictive Engine automatiquement, mais les captures peuvent rester
+strictement centrees sur les metriques remediation_engine.
 
-Lancer ensuite le smoke test P2 uniquement :
+Lancer ensuite le smoke test Remediation Engine uniquement :
 
 ```bash
 bash scripts/p2_demo_smoke_test.sh
@@ -134,27 +134,27 @@ bash scripts/p2_demo_smoke_test.sh
 
 Ce script :
 
-- verifie P2 et le mock Slack
-- envoie `P2/examples/event_valid.json` directement vers P2 `/events`
+- verifie Remediation Engine et le mock Slack
+- envoie `remediation_engine/examples/event_valid.json` directement vers Remediation Engine `/events`
 - laisse le worker Kafka traiter l'evenement
-- affiche les tickets, notifications mock Slack et metriques P2
+- affiche les tickets, notifications mock Slack et metriques Remediation Engine
 - interroge Prometheus si le service est disponible
 
 Captures recommandees pour ce mode rapide :
 
-- terminal avec `Evenement P2 valide envoye vers Kafka`
-- terminal avec `Tickets P2 crees`
+- terminal avec `Evenement Remediation Engine valide envoye vers Kafka`
+- terminal avec `Tickets Remediation Engine crees`
 - terminal avec `Notifications mock Slack`
-- terminal avec `Metriques P2 utiles`
+- terminal avec `Metriques Remediation Engine utiles`
 - navigateur `http://localhost:8001/ui`
 - navigateur `http://localhost:8001/tickets`
 - navigateur `http://localhost:8010/notifications`
 - optionnel : `http://localhost:9090/targets`, `http://localhost:9090/alerts`
-- optionnel : dashboard Grafana P2 dans `http://localhost:3000`
+- optionnel : dashboard Grafana Remediation Engine dans `http://localhost:3000`
 
 ## 4. Captures navigateur a prendre
 
-### P1 Swagger
+### Predictive Engine Swagger
 
 Ouvrir :
 
@@ -182,7 +182,7 @@ Capture :
 - statut OK / WARNING / CRITICAL
 - graphiques capteurs
 
-### P2 console
+### Remediation Engine console
 
 Ouvrir :
 
@@ -201,7 +201,7 @@ Capture :
 - validation evenement
 - resultat d'action ou file Kafka
 
-### Tickets P2
+### Tickets Remediation Engine
 
 Ouvrir :
 
@@ -252,7 +252,7 @@ http://localhost:9090/alerts
 
 Capture :
 
-- alertes P2 : evenement rejete, self-healing declenche, incident ouvert
+- alertes Remediation Engine : evenement rejete, self-healing declenche, incident ouvert
 
 Requetes utiles dans Prometheus :
 
@@ -282,7 +282,7 @@ admin / admin
 Capture :
 
 - datasource Prometheus provisionnee
-- dashboard P2 dans le dossier `Self Healing`
+- dashboard Remediation Engine dans le dossier `Self Healing`
 - panels incidents, self-healing, commandes actionneur, score de risque
 
 ## 5. Demo Kubernetes / HPA
@@ -293,9 +293,9 @@ Commandes principales :
 
 ```bash
 eval "$(minikube docker-env)"
-docker build -f P1/Dockerfile.api -t self-healing/p1-api:latest .
-docker build -f P1/Dockerfile.dashboard -t self-healing/dashboard:latest .
-docker build -f P2/Dockerfile -t self-healing/p2-api:latest .
+docker build -f predictive_engine/Dockerfile.api -t self-healing/p1-api:latest .
+docker build -f predictive_engine/Dockerfile.dashboard -t self-healing/dashboard:latest .
+docker build -f remediation_engine/Dockerfile -t self-healing/p2-api:latest .
 
 minikube addons enable metrics-server
 kubectl apply -f k8s/platform.yaml
@@ -343,7 +343,7 @@ docker compose ps
 
 Puis les URLs principales.
 
-### 1:15 - 2:15 P1 prediction
+### 1:15 - 2:15 Predictive Engine prediction
 
 Montrer Swagger ou Streamlit.
 
@@ -354,7 +354,7 @@ Insister sur :
 - anomalie
 - API key
 
-### 2:15 - 3:15 P1 -> P2 -> self-healing
+### 2:15 - 3:15 Predictive Engine -> Remediation Engine -> self-healing
 
 Lancer :
 
@@ -376,7 +376,7 @@ Montrer :
 
 - Prometheus targets
 - alertes Prometheus
-- dashboard Grafana P2
+- dashboard Grafana Remediation Engine
 
 ### 4:15 - 5:00 Kubernetes et limites
 
@@ -396,10 +396,10 @@ Finir avec les limites assumees :
 
 - Terminal `pytest` avec tests OK
 - Terminal `docker compose ps`
-- P1 Swagger
+- Predictive Engine Swagger
 - Streamlit dashboard
-- P2 UI
-- Tickets P2
+- Remediation Engine UI
+- Tickets Remediation Engine
 - Mock Slack
 - Prometheus targets
 - Prometheus alerts

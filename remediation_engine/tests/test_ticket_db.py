@@ -5,7 +5,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(ROOT))
 
-from P2.ticket_db import create_ticket_from_incident, get_ticket, list_tickets, update_ticket_from_incident
+from remediation_engine.ticket_db import create_ticket_from_incident, get_ticket, list_tickets, update_ticket_from_incident
 
 
 def test_create_and_read_ticket_from_sqlite(tmp_path, monkeypatch):

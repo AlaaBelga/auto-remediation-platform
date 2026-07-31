@@ -31,7 +31,7 @@ ENV PYTHONPATH=/app:/usr/local/lib/python3.13/site-packages
 EXPOSE 8000
 
 # Use the distroless python3 entrypoint and pass uvicorn as module args
-CMD ["-m", "uvicorn", "P2.api:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["-m", "uvicorn", "remediation_engine.api:app", "--host", "0.0.0.0", "--port", "8000"]
 
 # Distroless healthcheck via Python stdlib only
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \

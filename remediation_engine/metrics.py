@@ -80,7 +80,7 @@ _METRICS: Dict[str, Dict[str, float | str]] = {
         "value": 0.0,
     },
     "p2_latest_risk_score": {
-        "help": "Latest risk score observed by P2.",
+        "help": "Latest risk score observed by remediation_engine.",
         "type": "gauge",
         "value": 0.0,
     },

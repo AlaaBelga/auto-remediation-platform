@@ -4,8 +4,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(ROOT))
 
-from P2.p1_to_p2_bridge import build_p2_event, classify_prediction
-from P2.validator import validate_event_with_schema
+from remediation_engine.p1_to_p2_bridge import build_p2_event, classify_prediction
+from remediation_engine.validator import validate_event_with_schema
 
 
 def test_build_p2_event_from_critical_p1_prediction():

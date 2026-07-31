@@ -6,8 +6,8 @@ from threading import Event
 ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(ROOT))
 
-from P2 import kafka_integration
-from P2.broker_worker import process_event
+from remediation_engine import kafka_integration
+from remediation_engine.broker_worker import process_event
 
 
 BASE = Path(__file__).resolve().parent.parent
@@ -20,8 +20,8 @@ def load(name: str):
 def test_process_event_triggers_action(monkeypatch):
     ev = load("event_valid.json")
 
-    monkeypatch.setattr("P2.broker_worker.load_kafka_config", lambda: kafka_integration.KafkaConfig(True, "localhost:9092", "in-topic", "out-topic", "client-1"))
-    monkeypatch.setattr("P2.broker_worker.publish_event", lambda *args, **kwargs: {"published": True})
+    monkeypatch.setattr("remediation_engine.broker_worker.load_kafka_config", lambda: kafka_integration.KafkaConfig(True, "localhost:9092", "in-topic", "out-topic", "client-1"))
+    monkeypatch.setattr("remediation_engine.broker_worker.publish_event", lambda *args, **kwargs: {"published": True})
 
     result = process_event(ev)
     assert result["status"] == "action_triggered"
@@ -41,9 +41,9 @@ def test_process_event_sends_webhook_notification(monkeypatch):
     ev = load("event_valid.json")
     calls = []
 
-    monkeypatch.setattr("P2.broker_worker.load_kafka_config", lambda: kafka_integration.KafkaConfig(False, "localhost:9092", "in-topic", "out-topic", "client-1"))
+    monkeypatch.setattr("remediation_engine.broker_worker.load_kafka_config", lambda: kafka_integration.KafkaConfig(False, "localhost:9092", "in-topic", "out-topic", "client-1"))
     monkeypatch.setattr(
-        "P2.consumer.send_webhook_notification",
+        "remediation_engine.consumer.send_webhook_notification",
         lambda event, incident: calls.append((event, incident)) or {"sent": True},
     )
 
@@ -64,7 +64,7 @@ def test_process_event_rejects_invalid_payload():
 
 def test_publish_event_returns_disabled_when_kafka_off(monkeypatch):
     ev = load("event_valid.json")
-    monkeypatch.setattr("P2.kafka_integration.load_kafka_config", lambda: kafka_integration.KafkaConfig(False, "localhost:9092", "in-topic", "out-topic", "client-1"))
+    monkeypatch.setattr("remediation_engine.kafka_integration.load_kafka_config", lambda: kafka_integration.KafkaConfig(False, "localhost:9092", "in-topic", "out-topic", "client-1"))
     result = kafka_integration.publish_event(ev)
     assert result == {"published": False, "reason": "kafka_disabled"}
 
@@ -89,12 +89,12 @@ def test_run_worker_forever_processes_one_batch_and_stops(monkeypatch):
 
     fake_consumer = FakeConsumer()
 
-    monkeypatch.setattr("P2.broker_worker.create_consumer", lambda: fake_consumer)
-    monkeypatch.setattr("P2.broker_worker.load_kafka_config", lambda: kafka_integration.KafkaConfig(False, "localhost:9092", "in-topic", "out-topic", "client-1"))
-    monkeypatch.setattr("P2.broker_worker.process_event", lambda event: {"status": "action_triggered", "result": "success"})
+    monkeypatch.setattr("remediation_engine.broker_worker.create_consumer", lambda: fake_consumer)
+    monkeypatch.setattr("remediation_engine.broker_worker.load_kafka_config", lambda: kafka_integration.KafkaConfig(False, "localhost:9092", "in-topic", "out-topic", "client-1"))
+    monkeypatch.setattr("remediation_engine.broker_worker.process_event", lambda event: {"status": "action_triggered", "result": "success"})
 
     stop_event = Event()
-    result = __import__("P2.broker_worker", fromlist=["run_worker_forever"]).run_worker_forever(
+    result = __import__("remediation_engine.broker_worker", fromlist=["run_worker_forever"]).run_worker_forever(
         stop_event=stop_event,
         poll_timeout_ms=1,
         max_messages=1,

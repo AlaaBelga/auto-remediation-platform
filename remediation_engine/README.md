@@ -12,8 +12,8 @@ Fichiers clés:
 
 Utilisation rapide:
 ```bash
-python3 P2/consumer.py P2/examples/event_valid.json
-python3 P2/consumer.py P2/examples/event_invalid.json
+python3 remediation_engine/consumer.py remediation_engine/examples/event_valid.json
+python3 remediation_engine/consumer.py remediation_engine/examples/event_invalid.json
 ```
 
 Journaux:
@@ -42,7 +42,7 @@ Docker (construction et lancement):
 ```bash
 cd "/chemin/vers/Self Healing"
 # Dockerfile multi-etape (image plus compacte avec verification de sante)
-docker build -f P2/Dockerfile -t p2-consumer:latest .
+docker build -f remediation_engine/Dockerfile -t p2-consumer:latest .
 docker run --rm -p 8000:8000 p2-consumer:latest
 
 # Verifier la sante via le point d'entree expose par le conteneur
@@ -54,7 +54,7 @@ Image distroless (execution plus legere, utilisateur non privilegie)
 ```bash
 # Construire l'image distroless
 cd "/chemin/vers/Self Healing"
-docker build -f P2/Dockerfile.distroless -t p2-consumer:distroless .
+docker build -f remediation_engine/Dockerfile.distroless -t p2-consumer:distroless .
 
 # Lancer le conteneur
 docker run --rm -p 8000:8000 p2-consumer:distroless
@@ -113,7 +113,7 @@ export KAFKA_OUTPUT_TOPIC=p2.self.healing.results
 Lancer le processus Kafka:
 
 ```bash
-python3 -m P2.broker_worker
+python3 -m remediation_engine.broker_worker
 ```
 
 Lorsque Kafka est active, le point d'entree `/events` publie les evenements valides dans le topic d'entree avant toute execution locale du flux d'auto-remediation.
@@ -121,12 +121,12 @@ Lorsque Kafka est active, le point d'entree `/events` publie les evenements vali
 TLS Kafka n'est pas active dans le prototype Docker Compose : Kafka utilise des
 listeners `PLAINTEXT` pour garder la demonstration locale simple. En production,
 il faudrait configurer des listeners TLS, distribuer les certificats via secrets,
-activer SASL ou mTLS, puis verifier que le worker et l'API P2 refusent les
+activer SASL ou mTLS, puis verifier que le worker et l'API Remediation Engine refusent les
 connexions Kafka non chiffrees.
 
 ## Mock Slack / webhook
 
-Quand `P2_WEBHOOK_URL` ou `SLACK_WEBHOOK_URL` est defini, P2 envoie une
+Quand `P2_WEBHOOK_URL` ou `SLACK_WEBHOOK_URL` est defini, Remediation Engine envoie une
 notification HTTP apres la creation d'un incident. L'echec du webhook est
 journalise mais ne bloque pas la creation d'incident.
 
@@ -139,7 +139,7 @@ http://localhost:8010/notifications
 Le receiver accepte les notifications sur `/webhook/slack` et conserve les
 messages dans `mock_slack_notifications.jsonl`.
 
-Stack Docker Compose (Kafka + Zookeeper + API P2 + processus Kafka):
+Stack Docker Compose (Kafka + Zookeeper + API Remediation Engine + processus Kafka):
 
 ```bash
 docker compose up --build
@@ -156,14 +156,14 @@ Services exposes:
 - Grafana: `http://localhost:3000` (`admin` / `admin`)
 
 Le processus Kafka tourne en continu et interroge Kafka jusqu'a son interruption.
-Prometheus collecte `p2-api:8000/metrics`, et Grafana est provisionne avec le tableau de bord `Auto-remediation / Vue d'ensemble P2`.
+Prometheus collecte `p2-api:8000/metrics`, et Grafana est provisionne avec le tableau de bord `Auto-remediation / Vue d'ensemble Remediation Engine`.
 Prometheus collecte aussi `p2-worker:8002/metrics`, ce qui rend visibles les
 actions, commandes actionneur et incidents executes par le processus Kafka.
 
 Interface utilisateur:
 
 ```bash
-uvicorn P2.api:app --reload --host 0.0.0.0 --port 8000
+uvicorn remediation_engine.api:app --reload --host 0.0.0.0 --port 8000
 ```
 
 Puis ouvrir:
@@ -176,24 +176,24 @@ La page fournit un cockpit minimal pour coller un événement JSON, le valider e
 
 Passerelle Pilier 1 -> Pilier 2:
 
-Le script `P2/p1_to_p2_bridge.py` appelle l'API Pilier 1 `/predict`, transforme la réponse en événement conforme au schéma `P1_to_P2_event_schema_v1.json`, puis envoie cet événement vers `P2 /events`.
+Le script `remediation_engine/p1_to_p2_bridge.py` appelle l'API Pilier 1 `/predict`, transforme la réponse en événement conforme au schéma `P1_to_P2_event_schema_v1.json`, puis envoie cet événement vers `Remediation Engine /events`.
 
 Pour lancer les deux APIs en local sans conflit de port:
 
 ```bash
 # Terminal 1
-cd P1
+cd Predictive Engine
 uvicorn api:app --reload --port 8000
 
 # Terminal 2, depuis la racine du projet
-uvicorn P2.api:app --reload --port 8001
+uvicorn remediation_engine.api:app --reload --port 8001
 ```
 
-Exemple avec P1 sur le port `8000` et P2 sur le port `8001`:
+Exemple avec Predictive Engine sur le port `8000` et Remediation Engine sur le port `8001`:
 
 ```bash
-python3 -m P2.p1_to_p2_bridge \
-  --payload-file P1/sample_payload.json \
+python3 -m remediation_engine.p1_to_p2_bridge \
+  --payload-file predictive_engine/sample_payload.json \
   --machine-id unit_42 \
   --p1-url http://127.0.0.1:8000/predict \
   --p2-url http://127.0.0.1:8001/events \
@@ -201,11 +201,11 @@ python3 -m P2.p1_to_p2_bridge \
   --p2-api-key demo-platform-key
 ```
 
-Pour vérifier l'événement généré sans l'envoyer à P2:
+Pour vérifier l'événement généré sans l'envoyer à Remediation Engine:
 
 ```bash
-python3 -m P2.p1_to_p2_bridge \
-  --payload-file P1/sample_payload.json \
+python3 -m remediation_engine.p1_to_p2_bridge \
+  --payload-file predictive_engine/sample_payload.json \
   --machine-id unit_42 \
   --dry-run
 ```
@@ -213,8 +213,8 @@ python3 -m P2.p1_to_p2_bridge \
 Pour déclencher un cas critique de démonstration:
 
 ```bash
-python3 -m P2.p1_to_p2_bridge \
-  --payload-file P1/critical_payload.json \
+python3 -m remediation_engine.p1_to_p2_bridge \
+  --payload-file predictive_engine/critical_payload.json \
   --machine-id unit_42 \
   --p1-url http://127.0.0.1:8000/predict \
   --p2-url http://127.0.0.1:8001/events \
@@ -222,4 +222,4 @@ python3 -m P2.p1_to_p2_bridge \
   --p2-api-key demo-platform-key
 ```
 
-Si l'événement est critique, P2 retourne `action_triggered`, écrit une commande `REDUCE_RPM_BY_20` dans `P2/actuator_commands.log`, puis crée un incident dans `P2/incidents.jsonl`.
+Si l'événement est critique, Remediation Engine retourne `action_triggered`, écrit une commande `REDUCE_RPM_BY_20` dans `remediation_engine/actuator_commands.log`, puis crée un incident dans `remediation_engine/incidents.jsonl`.

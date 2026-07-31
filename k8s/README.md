@@ -6,9 +6,9 @@ Avec Minikube :
 
 ```bash
 eval "$(minikube docker-env)"
-docker build -f P1/Dockerfile.api -t self-healing/p1-api:latest .
-docker build -f P1/Dockerfile.dashboard -t self-healing/dashboard:latest .
-docker build -f P2/Dockerfile -t self-healing/p2-api:latest .
+docker build -f predictive_engine/Dockerfile.api -t self-healing/p1-api:latest .
+docker build -f predictive_engine/Dockerfile.dashboard -t self-healing/dashboard:latest .
+docker build -f remediation_engine/Dockerfile -t self-healing/p2-api:latest .
 ```
 
 ## Deployer
@@ -37,7 +37,7 @@ kubectl port-forward -n self-healing service/dashboard 8501:8501
 ## Demonstration HPA reproductible
 
 Objectif : montrer que le `HorizontalPodAutoscaler` augmente le nombre de pods
-P1 lorsque l'API `/predict` recoit une charge CPU suffisante.
+Predictive Engine lorsque l'API `/predict` recoit une charge CPU suffisante.
 
 Preparer le cluster :
 
@@ -109,11 +109,11 @@ fenetre de stabilisation avant de reduire la capacite.
 
 Le manifeste fournit :
 
-- deploiements P1, P2 et tableau de bord
+- deploiements Predictive Engine, Remediation Engine et tableau de bord
 - Services ClusterIP
 - sondes de disponibilite et de demarrage
 - demandes et limites de ressources
-- HPA P1 de 2 a 10 pods
+- HPA Predictive Engine de 2 a 10 pods
 - PodDisruptionBudgets
 - Ingress NGINX
 
@@ -122,7 +122,7 @@ Le manifeste fournit :
 Le manifeste expose un Ingress HTTP simple pour faciliter la demonstration
 locale. Il ne configure pas encore de secret TLS ni de certificat. En production,
 il faudrait ajouter un Ingress TLS, par exemple avec `cert-manager`, puis forcer
-les appels externes vers P1, P2 et le tableau de bord en HTTPS.
+les appels externes vers Predictive Engine, Remediation Engine et le tableau de bord en HTTPS.
 
 Cette partie reste volontairement hors prototype : elle depend du cluster, du
 nom de domaine, de l'autorite de certification et de la politique de rotation

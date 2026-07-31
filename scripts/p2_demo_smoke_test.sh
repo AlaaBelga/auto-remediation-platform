@@ -5,7 +5,7 @@ API_KEY="${API_KEY:-demo-platform-key}"
 P2_URL="${P2_URL:-http://127.0.0.1:8001}"
 SLACK_URL="${SLACK_URL:-http://127.0.0.1:8010}"
 PROMETHEUS_URL="${PROMETHEUS_URL:-http://127.0.0.1:9090}"
-EVENT_FILE="${EVENT_FILE:-P2/examples/event_valid.json}"
+EVENT_FILE="${EVENT_FILE:-remediation_engine/examples/event_valid.json}"
 
 echo "== Verification P2 et dependances =="
 curl -fsS "${P2_URL}/health"

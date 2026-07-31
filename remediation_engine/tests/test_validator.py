@@ -6,7 +6,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(ROOT))
 
-from P2.validator import validate_event_with_schema
+from remediation_engine.validator import validate_event_with_schema
 
 
 BASE = Path(__file__).resolve().parent.parent

@@ -87,4 +87,4 @@ Le Pilier 2 consomme cet événement pour :
 - produire un retour d'expérience vers le Pilier 1.
 
 ## Contrat formel (JSON Schema)
-Une version stricte du contrat est fournie ici : [P2/P1_to_P2_event_schema_v1.json](P2/P1_to_P2_event_schema_v1.json).
+Une version stricte du contrat est fournie ici : [remediation_engine/P1_to_P2_event_schema_v1.json](remediation_engine/P1_to_P2_event_schema_v1.json).

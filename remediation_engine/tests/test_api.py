@@ -7,8 +7,8 @@ from fastapi.testclient import TestClient
 ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(ROOT))
 
-from P2.api import app
-from P2 import kafka_integration
+from remediation_engine.api import app
+from remediation_engine import kafka_integration
 
 
 BASE = Path(__file__).resolve().parent.parent
@@ -108,7 +108,7 @@ def test_tickets_route_exposes_mock_ticket_db(tmp_path, monkeypatch):
 def test_kafka_mode_queues_without_local_action(monkeypatch):
     ev = load("event_valid.json")
     monkeypatch.setattr(
-        "P2.api.load_kafka_config",
+        "remediation_engine.api.load_kafka_config",
         lambda: kafka_integration.KafkaConfig(
             True,
             "localhost:9092",
@@ -118,7 +118,7 @@ def test_kafka_mode_queues_without_local_action(monkeypatch):
         ),
     )
     monkeypatch.setattr(
-        "P2.api.publish_event",
+        "remediation_engine.api.publish_event",
         lambda *args, **kwargs: {
             "published": True,
             "topic": "in-topic",
@@ -127,7 +127,7 @@ def test_kafka_mode_queues_without_local_action(monkeypatch):
         },
     )
     monkeypatch.setattr(
-        "P2.api.simulate_playbook",
+        "remediation_engine.api.simulate_playbook",
         lambda payload: (_ for _ in ()).throw(
             AssertionError("local playbook must not run in Kafka mode")
         ),

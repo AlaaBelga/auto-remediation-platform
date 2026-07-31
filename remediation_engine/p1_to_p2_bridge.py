@@ -226,14 +226,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--correlation-id", help="Optional correlation id. Generated when omitted.")
     parser.add_argument(
         "--model-version",
-        help="Optional override. By default the bridge uses the version returned by P1.",
+        help="Optional override. By default the bridge uses the version returned by predictive_engine.",
     )
     parser.add_argument("--warning-threshold", type=float, default=DEFAULT_WARNING_THRESHOLD)
     parser.add_argument("--critical-threshold", type=float, default=DEFAULT_CRITICAL_THRESHOLD)
-    parser.add_argument("--p1-api-key", help="Cle API a envoyer a P1. Par defaut: P1_API_KEY ou PLATFORM_API_KEY.")
-    parser.add_argument("--p2-api-key", help="Cle API a envoyer a P2. Par defaut: P2_API_KEY ou PLATFORM_API_KEY.")
+    parser.add_argument("--p1-api-key", help="Cle API a envoyer a predictive_engine. Par defaut: P1_API_KEY ou PLATFORM_API_KEY.")
+    parser.add_argument("--p2-api-key", help="Cle API a envoyer a remediation_engine. Par defaut: P2_API_KEY ou PLATFORM_API_KEY.")
     parser.add_argument("--timeout", type=float, default=10.0)
-    parser.add_argument("--dry-run", action="store_true", help="Build and print the event without posting to P2.")
+    parser.add_argument("--dry-run", action="store_true", help="Build and print the event without posting to remediation_engine.")
     return parser.parse_args()
 
 

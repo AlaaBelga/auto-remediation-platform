@@ -91,7 +91,7 @@ la mesure courante par rapport au profil d'entrainement.
 ## Lancer l'API FastAPI
 
 ```bash
-cd ~/Desktop/P1
+cd ~/Desktop/Predictive Engine
 source .venv/bin/activate
 uvicorn api:app --reload
 ```
@@ -117,7 +117,7 @@ sans cle pour les sondes et Prometheus.
 Dans un deuxieme terminal :
 
 ```bash
-cd ~/Desktop/P1
+cd ~/Desktop/Predictive Engine
 source .venv/bin/activate
 streamlit run dashboard.py
 ```
@@ -213,7 +213,7 @@ python load_test.py --requests 100 --concurrency 5 --api-key demo-platform-key
 Le script effectue un prechauffage puis affiche les latences moyenne, P50, P95
 et le respect ou non de l'objectif P95 inferieur a 100 ms.
 
-Mesure obtenue le 6 juin 2026 sur Docker Desktop pour Mac, API P1 isolee :
+Mesure obtenue le 6 juin 2026 sur Docker Desktop pour Mac, API Predictive Engine isolee :
 
 - 100 requetes, concurrence 1, aucune erreur
 - moyenne : 78.14 ms

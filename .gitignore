@@ -10,8 +10,8 @@
 *.db
 *.db-shm
 *.db-wal
-P2/incidents.jsonl
-P2/actuator_commands.log
-P2/consumer.log
-P2/playbook_actions.log
-P1/.matplotlib/
+remediation_engine/incidents.jsonl
+remediation_engine/actuator_commands.log
+remediation_engine/consumer.log
+remediation_engine/playbook_actions.log
+predictive_engine/.matplotlib/

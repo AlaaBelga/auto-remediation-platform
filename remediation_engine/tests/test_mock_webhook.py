@@ -8,7 +8,7 @@ from fastapi.testclient import TestClient
 ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(ROOT))
 
-from P2 import mock_webhook
+from remediation_engine import mock_webhook
 
 
 client = TestClient(mock_webhook.app)

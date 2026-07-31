@@ -33,7 +33,7 @@ services:
   p1-api:
     build:
       context: .
-      dockerfile: P1/Dockerfile.api
+      dockerfile: predictive_engine/Dockerfile.api
     environment:
       MODEL_VERSION: rf-1.2.0
       RISK_WARNING_THRESHOLD: 0.60
@@ -50,7 +50,7 @@ services:
   dashboard:
     build:
       context: .
-      dockerfile: P1/Dockerfile.dashboard
+      dockerfile: predictive_engine/Dockerfile.dashboard
     depends_on:
       p1-api:
         condition: service_healthy
@@ -63,7 +63,7 @@ services:
   p2-api:
     build:
       context: .
-      dockerfile: P2/Dockerfile
+      dockerfile: remediation_engine/Dockerfile
     depends_on:
       kafka:
         condition: service_healthy
@@ -86,10 +86,10 @@ services:
   slack-mock:
     build:
       context: .
-      dockerfile: P2/Dockerfile
+      dockerfile: remediation_engine/Dockerfile
     environment:
       P2_DATA_DIR: /data
-    command: ["uvicorn", "P2.mock_webhook:app", "--host", "0.0.0.0", "--port", "8003"]
+    command: ["uvicorn", "remediation_engine.mock_webhook:app", "--host", "0.0.0.0", "--port", "8003"]
     ports:
       - "8010:8003"
     healthcheck:
@@ -104,7 +104,7 @@ services:
   p2-worker:
     build:
       context: .
-      dockerfile: P2/Dockerfile
+      dockerfile: remediation_engine/Dockerfile
     depends_on:
       kafka:
         condition: service_healthy
@@ -119,7 +119,7 @@ services:
       P2_DATA_DIR: /data
       P2_WORKER_METRICS_PORT: 8002
       P2_WEBHOOK_URL: http://slack-mock:8003/webhook/slack
-    command: ["python", "-m", "P2.broker_worker"]
+    command: ["python", "-m", "remediation_engine.broker_worker"]
     expose:
       - "8002"
     healthcheck:
