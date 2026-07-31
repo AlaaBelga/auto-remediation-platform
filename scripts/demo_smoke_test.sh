@@ -18,7 +18,7 @@ echo
 
 echo "== Declenchement du cas critique P1 -> P2 =="
 python3 -m P2.p1_to_p2_bridge \
-  --payload-file Projet_encadrer/critical_payload.json \
+  --payload-file P1/critical_payload.json \
   --machine-id "${MACHINE_ID}" \
   --p1-url "${P1_URL}" \
   --p2-url "${P2_URL}" \

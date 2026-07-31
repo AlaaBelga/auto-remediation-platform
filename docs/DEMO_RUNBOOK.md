@@ -33,7 +33,7 @@ demo-platform-key
 ## 2. Verification rapide en terminal
 
 ```bash
-pytest P2/tests Projet_encadrer/tests -q
+pytest P2/tests P1/tests -q
 docker compose config --quiet
 ```
 
@@ -293,8 +293,8 @@ Commandes principales :
 
 ```bash
 eval "$(minikube docker-env)"
-docker build -f Projet_encadrer/Dockerfile.api -t self-healing/p1-api:latest .
-docker build -f Projet_encadrer/Dockerfile.dashboard -t self-healing/dashboard:latest .
+docker build -f P1/Dockerfile.api -t self-healing/p1-api:latest .
+docker build -f P1/Dockerfile.dashboard -t self-healing/dashboard:latest .
 docker build -f P2/Dockerfile -t self-healing/p2-api:latest .
 
 minikube addons enable metrics-server

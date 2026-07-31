@@ -6,8 +6,8 @@ Avec Minikube :
 
 ```bash
 eval "$(minikube docker-env)"
-docker build -f Projet_encadrer/Dockerfile.api -t self-healing/p1-api:latest .
-docker build -f Projet_encadrer/Dockerfile.dashboard -t self-healing/dashboard:latest .
+docker build -f P1/Dockerfile.api -t self-healing/p1-api:latest .
+docker build -f P1/Dockerfile.dashboard -t self-healing/dashboard:latest .
 docker build -f P2/Dockerfile -t self-healing/p2-api:latest .
 ```
 

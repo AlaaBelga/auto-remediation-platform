@@ -182,7 +182,7 @@ Pour lancer les deux APIs en local sans conflit de port:
 
 ```bash
 # Terminal 1
-cd Projet_encadrer
+cd P1
 uvicorn api:app --reload --port 8000
 
 # Terminal 2, depuis la racine du projet
@@ -193,7 +193,7 @@ Exemple avec P1 sur le port `8000` et P2 sur le port `8001`:
 
 ```bash
 python3 -m P2.p1_to_p2_bridge \
-  --payload-file Projet_encadrer/sample_payload.json \
+  --payload-file P1/sample_payload.json \
   --machine-id unit_42 \
   --p1-url http://127.0.0.1:8000/predict \
   --p2-url http://127.0.0.1:8001/events \
@@ -205,7 +205,7 @@ Pour vérifier l'événement généré sans l'envoyer à P2:
 
 ```bash
 python3 -m P2.p1_to_p2_bridge \
-  --payload-file Projet_encadrer/sample_payload.json \
+  --payload-file P1/sample_payload.json \
   --machine-id unit_42 \
   --dry-run
 ```
@@ -214,7 +214,7 @@ Pour déclencher un cas critique de démonstration:
 
 ```bash
 python3 -m P2.p1_to_p2_bridge \
-  --payload-file Projet_encadrer/critical_payload.json \
+  --payload-file P1/critical_payload.json \
   --machine-id unit_42 \
   --p1-url http://127.0.0.1:8000/predict \
   --p2-url http://127.0.0.1:8001/events \

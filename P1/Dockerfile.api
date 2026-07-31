@@ -5,15 +5,15 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-COPY Projet_encadrer/requirements-api.txt .
+COPY P1/requirements-api.txt .
 RUN pip install --no-cache-dir -r requirements-api.txt
 
-COPY Projet_encadrer/api.py .
-COPY Projet_encadrer/model.joblib .
-COPY Projet_encadrer/rul_model.joblib .
-COPY Projet_encadrer/anomaly_model.joblib .
-COPY Projet_encadrer/model_features.joblib .
-COPY Projet_encadrer/feature_profile.joblib .
+COPY P1/api.py .
+COPY P1/model.joblib .
+COPY P1/rul_model.joblib .
+COPY P1/anomaly_model.joblib .
+COPY P1/model_features.joblib .
+COPY P1/feature_profile.joblib .
 
 RUN useradd --create-home appuser \
     && chown -R appuser:appuser /app

@@ -90,7 +90,7 @@ To see the auto-remediation in action, wait for the stack to start, then trigger
 
 ```bash
 python3 -m P2.p1_to_p2_bridge \
-  --payload-file Projet_encadrer/critical_payload.json \
+  --payload-file P1/critical_payload.json \
   --machine-id TURBINE_042 \
   --p1-url http://127.0.0.1:8000/predict \
   --p2-url http://127.0.0.1:8001/events \
@@ -103,7 +103,7 @@ python3 -m P2.p1_to_p2_bridge \
 2. The P2 worker picks it up and executes the remediation playbook.
 3. You can see the incident notification on the mock Slack service at `http://localhost:8010/notifications`.
 
-*(See [DEMO_RUNBOOK.md](DEMO_RUNBOOK.md) for detailed demonstration scripts.)*
+*(See [docs/DEMO_RUNBOOK.md](docs/DEMO_RUNBOOK.md) for detailed demonstration scripts.)*
 
 ---
 

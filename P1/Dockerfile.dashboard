@@ -6,12 +6,12 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-COPY Projet_encadrer/requirements-dashboard.txt .
+COPY P1/requirements-dashboard.txt .
 RUN pip install --no-cache-dir -r requirements-dashboard.txt
 
-COPY Projet_encadrer/dashboard.py .
-COPY Projet_encadrer/dashboard_analytics.py .
-COPY Projet_encadrer/train_FD001.txt .
+COPY P1/dashboard.py .
+COPY P1/dashboard_analytics.py .
+COPY P1/train_FD001.txt .
 
 RUN useradd --create-home appuser \
     && chown -R appuser:appuser /app

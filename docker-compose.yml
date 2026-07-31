@@ -33,7 +33,7 @@ services:
   p1-api:
     build:
       context: .
-      dockerfile: Projet_encadrer/Dockerfile.api
+      dockerfile: P1/Dockerfile.api
     environment:
       MODEL_VERSION: rf-1.2.0
       RISK_WARNING_THRESHOLD: 0.60
@@ -50,7 +50,7 @@ services:
   dashboard:
     build:
       context: .
-      dockerfile: Projet_encadrer/Dockerfile.dashboard
+      dockerfile: P1/Dockerfile.dashboard
     depends_on:
       p1-api:
         condition: service_healthy

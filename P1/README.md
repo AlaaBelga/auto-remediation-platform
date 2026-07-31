@@ -91,7 +91,7 @@ la mesure courante par rapport au profil d'entrainement.
 ## Lancer l'API FastAPI
 
 ```bash
-cd ~/Desktop/Projet_encadrer
+cd ~/Desktop/P1
 source .venv/bin/activate
 uvicorn api:app --reload
 ```
@@ -117,7 +117,7 @@ sans cle pour les sondes et Prometheus.
 Dans un deuxieme terminal :
 
 ```bash
-cd ~/Desktop/Projet_encadrer
+cd ~/Desktop/P1
 source .venv/bin/activate
 streamlit run dashboard.py
 ```

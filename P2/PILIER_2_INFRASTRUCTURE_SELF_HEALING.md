@@ -1,7 +1,7 @@
 # Pilier 2 - Infrastructure d'auto-remediation
 
 ## Contexte projet
-Ce pilier complète le Pilier 1 du projet `Projet_encadrer`.
+Ce pilier complète le Pilier 1 du projet `P1`.
 Le Pilier 1 fournit un signal de risque de panne via l'API FastAPI et le tableau de bord Streamlit.
 Le Pilier 2 transforme ce signal en actions d'infrastructure automatisées, contrôlées et traçables.
 
@@ -60,7 +60,7 @@ Mettre en place une infrastructure capable de consommer les sorties du modèle d
 - Validation post-remédiation.
 - Ouverture de ticket ou notification en cas d'échec.
 
-## Règles de déclenchement pour Projet_encadrer
+## Règles de déclenchement pour P1
 ### Entrées principales
 - `prediction` : indique si la machine est saine ou à risque.
 - `risk_score` : mesure de confiance du risque.
