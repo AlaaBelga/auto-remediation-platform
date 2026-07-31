@@ -33,15 +33,17 @@ While training a predictive model is standard practice, **Pillar 2** represents 
 
 ![Bridge Architecture](assets/bridge_p1_p2.png)
 
-### Key Features of Pillar 2
-- **Event-Driven Broker**: Utilizes **Kafka** to decouple event generation from playbook execution.
-- **Automated Playbook Execution**: The P2 worker is the sole authority for executing playbooks, preventing duplicate commands during an ongoing incident.
-- **Simulated Actuator Commands**: Automatically triggers commands like `REDUCE_RPM_BY_20` based on the incident severity.
-- **Alerting & Ticketing**: Automatically sends notifications to a mock Slack webhook and logs incidents in a local SQLite tracking database.
-- **Kubernetes Ready**: Designed to be deployed on a Kubernetes cluster with provided manifests (`k8s/platform.yaml`).
+### Deep-Dive into Pillar 2 Technical Architecture
+- **Event-Driven Broker (Kafka)**: Decouples event generation from playbook execution. It ensures high throughput, fault tolerance, and guarantees message delivery even during traffic spikes.
+- **Idempotent Playbook Execution**: The P2 worker is the sole authority for executing remediation logic. It includes state management to prevent duplicate actuator commands (e.g., stopping a turbine twice) while an incident is already ongoing.
+- **Strict Payload Validation**: Every incoming Kafka event is validated against a strict schema to prevent malformed data from triggering unsafe physical commands.
+- **Simulated Actuator Control**: Dynamically triggers industrial commands (like `REDUCE_RPM_BY_20`) based on calculated severity thresholds and contextual rules.
+- **Incident State Tracking (SQLite)**: Logs all incidents systematically into a local SQLite tracking database for auditability and compliance, effectively serving as an automated ticketing system.
+- **Real-Time Alerting**: Pushes urgent notifications to a mock Slack webhook to keep human operators in the loop while the system self-heals.
+- **Kubernetes Ready**: Fully containerized and orchestrated. Contains provided manifests (`k8s/platform.yaml`) for scaling workers and brokers in a Kubernetes environment.
 
 ### Observability
-The platform integrates **Prometheus** and **Grafana** to monitor system health and prediction metrics in real-time.
+The platform integrates **Prometheus** and **Grafana** to monitor system health, API latency, and prediction metrics in real-time.
 
 ![Grafana Dashboard](assets/grafana_dashboard_active.png)
 
@@ -114,3 +116,10 @@ This project is built with production standards in mind.
 - **Comprehensive Testing**: Validated by an extensive `pytest` suite ensuring the bridge, API, ticketing database, and ML models all function perfectly.
 
 ![Tests Passed](assets/tests_passed.png)
+
+---
+
+## 👥 Collaborators
+
+- **Pillar 1 (Machine Learning & Data Science):** Imane Tayf
+- **Pillar 2 (Auto-Remediation & Platform Orchestration):** Belga Alaa
