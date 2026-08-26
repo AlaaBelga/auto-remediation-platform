@@ -14,8 +14,8 @@ WORKDIR /app
 # Copy installed dependencies from builder
 COPY --from=builder /install /usr/local
 
-# Copy application code
-COPY P2 /app/P2
+# Copy application package from the repo root
+COPY remediation_engine /app/remediation_engine
 
 ENV PYTHONPATH=/app
 

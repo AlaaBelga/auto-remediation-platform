@@ -23,8 +23,8 @@ COPY --from=builder --chown=65532:65532 /install /usr/local
 # Copy CA certificates from builder into runtime image
 COPY --from=builder --chown=65532:65532 /etc/ssl/certs /etc/ssl/certs
 
-# Copy application
-COPY --chown=65532:65532 P2 /app/P2
+# Copy application package from the repo root
+COPY --chown=65532:65532 remediation_engine /app/remediation_engine
 
 ENV PYTHONPATH=/app:/usr/local/lib/python3.13/site-packages
 

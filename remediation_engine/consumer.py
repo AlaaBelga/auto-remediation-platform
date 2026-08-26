@@ -118,42 +118,10 @@ def build_webhook_payload(ev: dict, incident: dict):
 
 
 def send_webhook_notification(ev: dict, incident: dict):
-    url = webhook_url()
-    if not url:
-        return {"sent": False, "reason": "webhook_disabled"}
+    from .notifications import NotificationManager
 
-    payload = build_webhook_payload(ev, incident)
-    body = json.dumps(payload).encode("utf-8")
-    request = Request(
-        url,
-        data=body,
-        headers={"Content-Type": "application/json"},
-        method="POST",
-    )
-    timeout = float(os.getenv("P2_WEBHOOK_TIMEOUT_SECONDS", "3"))
-
-    try:
-        with urlopen(request, timeout=timeout) as response:
-            response_body = response.read().decode("utf-8", errors="replace")
-        inc_metric("p2_webhook_notifications_total")
-        log_action(
-            f"webhook_notification_sent incident_id={incident['incident_id']} url={url} status={response.status}"
-        )
-        return {
-            "sent": True,
-            "status_code": response.status,
-            "response": response_body,
-        }
-    except (OSError, URLError) as exc:
-        inc_metric("p2_webhook_notification_errors_total")
-        log_action(
-            f"webhook_notification_error incident_id={incident['incident_id']} url={url} error={exc}"
-        )
-        return {
-            "sent": False,
-            "reason": "webhook_error",
-            "error": str(exc),
-        }
+    manager = NotificationManager()
+    return manager.send_notification(ev, incident)
 
 
 def validate_event(ev: dict):
